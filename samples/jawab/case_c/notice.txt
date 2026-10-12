@@ -1,0 +1,28 @@
+SYNTHETIC SAMPLE - FICTIONAL TAXPAYER - NOT A REAL NOTICE
+
+FORM GST ASMT-10
+[See rule 99(1)]
+
+Reference No.: ZD331125000789Z                         Date: 05/11/2025
+
+To,
+GSTIN: 33ZZZCH0003C1Z3
+Name: Coromandel Hardware Stores
+Address: 22, Market Street, Chennai, Tamil Nadu
+
+Tax Period: F.Y. 2024-25
+
+Sub: Notice for intimating discrepancies in the return after scrutiny
+
+The following discrepancies have been noticed in the returns furnished by you:
+
+Ground 1: Tax liability as per GSTR-1 for November 2024 is higher than the tax
+paid through GSTR-3B for November 2024.
+  IGST: Rs. 0.00   CGST: Rs. 3,000.00   SGST: Rs. 3,000.00   Cess: Rs. 0.00
+
+You are hereby directed to explain the reasons for the aforesaid discrepancies by
+05/12/2025, failing which proceedings in accordance with law may be initiated.
+
+Signature
+Name: (Proper Officer, fictional)
+Designation: Deputy State Tax Officer

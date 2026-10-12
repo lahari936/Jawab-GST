@@ -1,0 +1,31 @@
+SYNTHETIC SAMPLE - FICTIONAL TAXPAYER - NOT A REAL NOTICE
+
+FORM GST ASMT-10
+[See rule 99(1)]
+
+Reference No.: ZD271025000456Y                         Date: 20/10/2025
+
+To,
+GSTIN: 27ZZZMB0002B1Z2
+Name: Mahim Bakeware Traders
+Address: Shop 3, Station Road, Pune, Maharashtra
+
+Tax Period: F.Y. 2024-25
+
+Sub: Notice for intimating discrepancies in the return after scrutiny
+
+This is to inform you that during scrutiny of the returns furnished by you for the
+above-mentioned tax period, the following discrepancies have been noticed:
+
+Ground 1: Input tax credit availed in GSTR-3B for the month of September 2024 is in
+excess of the input tax credit available as per auto-generated GSTR-2B for that month.
+  IGST: Rs. 0.00   CGST: Rs. 6,000.00   SGST: Rs. 6,000.00   Cess: Rs. 0.00
+
+You are hereby directed to explain the reasons for the aforesaid discrepancies within
+a period of thirty days of the service of this notice. If no explanation is received,
+it will be presumed that you have nothing to say in the matter and proceedings in
+accordance with law may be initiated against you.
+
+Signature
+Name: (Proper Officer, fictional)
+Designation: State Tax Officer

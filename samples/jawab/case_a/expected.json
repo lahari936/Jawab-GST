@@ -1,0 +1,15 @@
+{
+  "gstin": "29ZZZKT0001A1Z1",
+  "notice_ref": "ZD291025000123X",
+  "form": "ASMT-10",
+  "issue_date": "2025-10-15",
+  "reply_due_date": "2025-11-14",
+  "due_date_computed": false,
+  "financial_year": "2024-25",
+  "grounds": [
+    {"ground_no": 1, "category": "output_tax_r1_vs_3b", "tax_period": "2024-07",
+     "officer_amount": {"igst": "18000", "cgst": "0", "sgst": "0", "cess": "0"}},
+    {"ground_no": 2, "category": "other", "tax_period": "FY2024-25",
+     "officer_amount": {"igst": "5400", "cgst": "0", "sgst": "0", "cess": "0"}}
+  ]
+}

@@ -1,0 +1,35 @@
+SYNTHETIC SAMPLE - FICTIONAL TAXPAYER - NOT A REAL NOTICE
+
+FORM GST ASMT-10
+[See rule 99(1)]
+
+Reference No.: ZD291025000123X                         Date: 15/10/2025
+
+To,
+GSTIN: 29ZZZKT0001A1Z1
+Name: Kaveri Looms Private Limited
+Address: 14, Weavers Lane, Bengaluru, Karnataka
+
+Tax Period: F.Y. 2024-25
+
+Sub: Notice for intimating discrepancies in the return after scrutiny
+
+This is to inform you that during scrutiny of the returns furnished by you for the
+above-mentioned tax period, the following discrepancies have been noticed:
+
+Ground 1: Output tax liability declared in GSTR-1 for the month of July 2024 is higher
+than the output tax declared and paid in GSTR-3B for the same month.
+  IGST: Rs. 18,000.00   CGST: Rs. 0.00   SGST: Rs. 0.00   Cess: Rs. 0.00
+
+Ground 2: Value of supplies as per e-way bills generated during F.Y. 2024-25 exceeds
+the taxable value declared in GSTR-1, resulting in short declaration of tax.
+  IGST: Rs. 5,400.00    CGST: Rs. 0.00   SGST: Rs. 0.00   Cess: Rs. 0.00
+
+You are hereby directed to explain the reasons for the aforesaid discrepancies by
+14/11/2025. If no explanation is received by the aforesaid date, it will be presumed
+that you have nothing to say in the matter and proceedings in accordance with law may
+be initiated against you without making any further reference to you in this regard.
+
+Signature
+Name: (Proper Officer, fictional)
+Designation: Assistant Commissioner of State Tax

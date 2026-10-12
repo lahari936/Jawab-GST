@@ -14,4 +14,5 @@ cd frontend && npm install && npm run dev
 python scripts/smoke_models.py  # check all four Nemotron tiers
 ```
 
-Tests: `cd backend && pytest`
+Tests: `cd backend && pytest` (offline). Live Nemotron extraction on the fixtures: `pytest -m live`.
+Regenerate sample notices: `python scripts/make_samples.py`.

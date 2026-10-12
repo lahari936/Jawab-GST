@@ -1,0 +1,3 @@
+period,supplier_gstin,invoice_no,invoice_date,igst,cgst,sgst,cess
+2024-11,33ZZZRT0301R1Z6,RT/77,2024-11-02,0,8000,8000,0
+2024-12,33ZZZRT0301R1Z6,RT/91,2024-12-04,0,7000,7000,0
