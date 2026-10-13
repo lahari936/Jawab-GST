@@ -19,7 +19,8 @@ PRICES = {t: (Decimal(0), Decimal(0)) for t in ("vision", "fast", "agent", "reas
 
 @cache
 def _client() -> OpenAI:
-    return OpenAI(base_url=os.environ["NEBIUS_BASE_URL"], api_key=os.environ["NEBIUS_API_KEY"])
+    # max_retries: SDK backs off on 429/5xx; free tiers return 503 "ResourceExhausted" when busy.
+    return OpenAI(base_url=os.environ["NEBIUS_BASE_URL"], api_key=os.environ["NEBIUS_API_KEY"], max_retries=5)
 
 
 def _model(tier: str) -> str:
@@ -65,8 +66,9 @@ def call_json(tier: str, system: str, user: str, schema: type[BaseModel], case_i
         try:
             return schema.model_validate_json(_json_slice(out))
         except ValidationError as e:
+            err = e
             user += f"\n\nYour last output failed validation: {e}. Fix it."
-    raise RuntimeError("LLM output invalid after retry")
+    raise RuntimeError(f"LLM output invalid after retry: {err}\nLast output: {out[:2000]!r}")
 
 
 def transcribe(image: bytes, mime: str, prompt: str, case_id: str) -> str:

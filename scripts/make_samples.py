@@ -21,6 +21,6 @@ for case in ("case_a", "case_b"):
     render(case).save(ROOT / case / "notice.pdf")
 
 # Case C: rasterise with a slight tilt, like a phone photo.
-pix = render("case_c")[0].get_pixmap(matrix=pymupdf.Matrix(2, 2).prerotate(2), colorspace=pymupdf.csGRAY)
+pix = render("case_c")[0].get_pixmap(matrix=pymupdf.Matrix(3, 3).prerotate(2), colorspace=pymupdf.csGRAY)
 pix.save(ROOT / "case_c" / "notice.png")
 print("ok")
