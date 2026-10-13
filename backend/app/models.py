@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import date, datetime
 from decimal import Decimal
 from functools import cache
@@ -44,7 +45,9 @@ class Notice(BaseModel):
 
 # ---------- SQLAlchemy ----------
 
-engine = create_engine(os.environ.get("DATABASE_URL", "sqlite:///jawab.db"))
+# Hosts like Render hand out postgres:// or postgresql:// URLs; we ship the psycopg (v3) driver.
+_db_url = re.sub(r"^postgres(ql)?://", "postgresql+psycopg://", os.environ.get("DATABASE_URL", "sqlite:///jawab.db"))
+engine = create_engine(_db_url, pool_pre_ping=True)
 
 
 class Base(DeclarativeBase):

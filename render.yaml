@@ -1,0 +1,34 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo. Secrets marked sync:false are asked for once.
+services:
+  - type: web
+    name: jawab-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: {name: jawab-db, property: connectionString}
+      - key: NEBIUS_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: MODEL_VISION
+        value: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+      - key: MODEL_FAST
+        value: nvidia/nemotron-3.5-lightning-30b-a3b
+      - key: MODEL_AGENT
+        value: nvidia/nemotron-3-super-120b-a12b
+      - key: MODEL_REASON
+        value: nvidia/nemotron-3-ultra-550b-a55b
+      - key: CORS_ORIGINS
+        value: https://frontend-woad-gamma-hzt3uxjv46.vercel.app,http://localhost:3000
+
+databases:
+  - name: jawab-db
+    plan: free   # Render free Postgres expires after 30 days; fine for the hackathon
+    databaseName: jawab
+    user: jawab
