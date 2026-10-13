@@ -7,5 +7,13 @@ services:
       POSTGRES_DB: jawab
     ports: ["5433:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
+  api:
+    build: {context: ., dockerfile: backend/Dockerfile}
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://jawab:jawab@db:5432/jawab
+    ports: ["8010:8000"]
+    depends_on: [db]
+    profiles: [api]   # `docker compose --profile api up`; day to day the API runs from the venv
 volumes:
   pgdata:

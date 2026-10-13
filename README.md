@@ -1,20 +1,138 @@
-# Jawab — GST Notice Responder
+# Jawab: GST notice responder
 
-Turns an ASMT-10 scrutiny notice plus return data into a reviewed, cited ASMT-11 reply draft.
-Draft for review by you or a CA. Not legal advice. See `docs/SPEC.md`.
+Jawab turns an ASMT-10 scrutiny notice and the business's return data into a reviewed, cited ASMT-11 reply draft.
 
-## Setup
+> Draft for review by you or a CA. Not legal advice. Nothing is filed automatically.
+
+Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents, Best Use of Tavily). Full spec: [`docs/SPEC.md`](docs/SPEC.md).
+
+## What it does
+
+1. **Reads the notice.** Digital PDFs are parsed locally with PyMuPDF. A scan or phone photo goes to Nemotron Nano Omni for transcription.
+2. **Extracts the grounds.** A fast Nemotron model turns the text into a typed `Notice` (Pydantic, validated, one retry).
+3. **Reconciles in code.** pandas compares GSTR-1 with GSTR-3B (output tax) and GSTR-2B with GSTR-3B (ITC), month by month and netted over the year. It also lists the later documents that offset a gap, such as a credit note or a late-filed supplier invoice. Status, tax payable and Section 50 interest are all computed in Python.
+4. **Explains.** An agent model suggests likely causes from a fixed list. The user ticks only the facts they can prove.
+5. **Researches.** Tavily searches cbic-gst.gov.in, gst.gov.in and indiacode.nic.in. Every result is stored in a `sources` table.
+6. **Drafts.** Nemotron Ultra writes the reply to each ground, using only confirmed facts and computed numbers, and cites sources as `[S<id>]`.
+7. **Verifies in code.** Every `Rs.` amount must match a computed figure, and every citation and URL must match a stored source. Anything else is highlighted red in the UI.
+
+Scope: ASMT-10 notices, with two ground types (output tax R1 vs 3B, ITC 2B vs 3B). Any other ground is marked "needs CA review".
+
+## Run it locally
+
+Needs Python 3.12+, Node 20+ and Docker.
 
 ```bash
-cp .env.example .env          # fill in keys
-docker compose up -d db
-pip install -r backend/requirements.txt
-cd backend && uvicorn app.main:app --reload --port 8010
-cd frontend && npm install && npm run dev
-python scripts/smoke_models.py  # check all four Nemotron tiers
+cp .env.example .env                      # add your LLM and Tavily keys
+docker compose up -d db                   # Postgres on host port 5433
+python -m venv .venv && .venv/Scripts/pip install -r backend/requirements.txt   # bin/ on macOS/Linux
+python scripts/smoke_models.py            # check all four model tiers respond
+cd backend && ../.venv/Scripts/python -m uvicorn app.main:app --reload --port 8010
+cd frontend && npm install && npm run dev # http://localhost:3000
 ```
 
-Tests: `cd backend && pytest` (offline). Live Nemotron extraction on the fixtures: `pytest -m live`.
-One case end to end from the CLI: `cd backend && python -m app.pipeline.case ../samples/jawab/case_b --paid-on 2025-11-10`.
-API on port 8010 (`uvicorn app.main:app --port 8010` from backend/), web on 3000. Postgres on host port 5433.
-Regenerate sample notices: `python scripts/make_samples.py`.
+Open http://localhost:3000, click **New case**, then pick one of the synthetic samples (cases A–C). Or upload your own notice plus the three CSVs, using the templates in `samples/jawab/`.
+
+**Command-line run of one whole case:**
+
+```bash
+cd backend && ../.venv/Scripts/python -m app.pipeline.case ../samples/jawab/case_b --paid-on 2025-11-10
+```
+
+**Tests:**
+
+```bash
+cd backend && ../.venv/Scripts/python -m pytest          # offline: LLM and Tavily faked
+cd backend && ../.venv/Scripts/python -m pytest -m live  # real model calls against the three fixtures
+```
+
+### Sample cases (synthetic: fake GSTINs and invented businesses)
+
+| Case | Notice | What it shows |
+| --- | --- | --- |
+| A | digital PDF | July output tax gap fully offset by an August credit note; a second e-way bill ground is routed to a CA |
+| B | digital PDF, no reply date | ITC gap: Rs. 1,500 per head from a late-filed supplier, Rs. 4,500 per head payable with interest |
+| C | tilted phone photo | Read by the vision model; genuine short payment |
+
+## Nemotron models used
+
+Model IDs live in `.env`, not in code. The only file that calls the API is `backend/app/llm/client.py`.
+
+| Tier | Job | Model |
+| --- | --- | --- |
+| vision | Transcribe scanned or photographed notices | Nemotron 3 Nano Omni (30B-A3B, reasoning) |
+| fast | Extract notice fields into JSON | Nemotron 3.5 Lightning 30B-A3B |
+| agent | Suggest causes for each ground | Nemotron 3 Super 120B-A12B |
+| reason | Write the ASMT-11 reply | Nemotron 3 Ultra 550B-A55B |
+
+All four are reasoning models. Their answer arrives in `content` and their thinking in `reasoning_content`. The client reads `content`, falls back to the reasoning field if `content` is empty, and strips `<think>` blocks and code fences before validating JSON.
+
+Each call is logged to `llm_calls` (tier, model, tokens, cost). The UI shows this as the per-case cost panel.
+
+## Where Token Factory helped
+
+<!-- TODO before submitting: write from what actually happened. Development so far ran on the NVIDIA API
+     Catalog (OpenAI-compatible, same Nemotron family) because Token Factory needed billing details.
+     Switching is .env only: NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1/ plus Token Factory model IDs.
+     Points worth measuring once switched: latency per tier vs the free tier, and cost per case from llm_calls. -->
+
+- One OpenAI-compatible endpoint serves all four Nemotron sizes, so routing each step to the right size is a one-line config change per tier.
+- _TODO: latency and cost per case measured on Token Factory._
+
+## Other Nebius services
+
+<!-- TODO: fill in only what was actually used, e.g. Serverless Endpoints for the API container. -->
+- _TODO_
+
+## Deployment
+
+**Backend (container).** Build from the repo root so the synthetic samples ship with the image:
+
+```bash
+docker build -f backend/Dockerfile -t jawab-api .
+docker run -p 8010:8000 --env-file .env -e DATABASE_URL=sqlite:////tmp/jawab.db jawab-api
+```
+
+The container listens on `$PORT` (default 8000). Set these variables wherever it runs:
+
+- `NEBIUS_BASE_URL`, `NEBIUS_API_KEY`
+- `MODEL_VISION`, `MODEL_FAST`, `MODEL_AGENT`, `MODEL_REASON`
+- `TAVILY_API_KEY`
+- `DATABASE_URL`: a managed Postgres, or the SQLite path above for a throwaway demo
+- `CORS_ORIGINS`: the frontend URL; defaults to `*`
+
+**On Nebius Serverless Endpoints:**
+1. Push the image to a registry the endpoint can pull from.
+2. Create an endpoint from that image with container port 8000.
+3. Add the variables above as environment or secrets.
+
+Check the exact steps against the current Nebius docs.
+
+**Frontend (Vercel).** Import the repo, set the root directory to `frontend`, and set `NEXT_PUBLIC_API_URL` to the backend's public URL.
+
+To run the API container alongside Postgres:
+
+```bash
+docker compose --profile api up
+```
+
+The API is then on http://localhost:8010.
+
+## Guardrails
+
+- **Maths:** all arithmetic and date maths happen in Python; prompts tell the models not to compute.
+- **Citations:** drafts may cite only rows stored in `sources`. The verifier rejects anything else, including URLs.
+- **Facts:** only facts the user ticks reach the drafting model.
+- **Fixed text:** the header, the banner and the text for grounds that need a CA are written by code, not the model.
+- **Data:** samples are synthetic, and `.env` is gitignored.
+
+## Known limits
+
+- Interest assumes a monthly filer (3B due on the 20th of the next month) and, for ITC, that the credit was used on that date. Check the rate and method against Section 50 and rule 88B before relying on it.
+- Each ground type has one fixed Tavily query.
+- Returns load from CSV templates only; portal JSON and Excel are not supported yet.
+- Export to PDF is done with the browser's print dialog; there is no DOCX export.
+
+## License
+
+MIT
