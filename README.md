@@ -4,7 +4,7 @@ Jawab turns an ASMT-10 scrutiny notice and the business's return data into a rev
 
 > Draft for review by you or a CA. Not legal advice. Nothing is filed automatically.
 
-Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents, Best Use of Tavily). Full spec: [`docs/SPEC.md`](docs/SPEC.md).
+Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents, Best Use of Tavily), using NVIDIA Nemotron models. Full spec: [`docs/SPEC.md`](docs/SPEC.md).
 
 ## What it does
 
@@ -69,20 +69,14 @@ All four are reasoning models. Their answer arrives in `content` and their think
 
 Each call is logged to `llm_calls` (tier, model, tokens, cost). The UI shows this as the per-case cost panel.
 
-## Where Token Factory helped
+## Inference
 
-<!-- TODO before submitting: write from what actually happened. Development so far ran on the NVIDIA API
-     Catalog (OpenAI-compatible, same Nemotron family) because Token Factory needed billing details.
-     Switching is .env only: NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1/ plus Token Factory model IDs.
-     Points worth measuring once switched: latency per tier vs the free tier, and cost per case from llm_calls. -->
+All four models run on the **NVIDIA API Catalog** (`https://integrate.api.nvidia.com/v1`, OpenAI-compatible, free tier).
+One endpoint serves every Nemotron size, so routing each step to the size it needs is one env var per tier.
+Any other OpenAI-compatible host for the same models is a `.env` change: `LLM_BASE_URL`, `LLM_API_KEY` and the four `MODEL_*` IDs.
 
-- One OpenAI-compatible endpoint serves all four Nemotron sizes, so routing each step to the right size is a one-line config change per tier.
-- _TODO: latency and cost per case measured on Token Factory._
-
-## Other Nebius services
-
-<!-- TODO: fill in only what was actually used, e.g. Serverless Endpoints for the API container. -->
-- _TODO_
+Free-tier notes: the endpoint sometimes returns 503 "ResourceExhausted" when busy, so the client retries up to five times with backoff.
+Cost per case shows $0 because the free tier is free; token counts per tier are real.
 
 ## Deployment
 
@@ -95,18 +89,13 @@ docker run -p 8010:8000 --env-file .env -e DATABASE_URL=sqlite:////tmp/jawab.db 
 
 The container listens on `$PORT` (default 8000). Set these variables wherever it runs:
 
-- `NEBIUS_BASE_URL`, `NEBIUS_API_KEY`
+- `LLM_BASE_URL`, `LLM_API_KEY`
 - `MODEL_VISION`, `MODEL_FAST`, `MODEL_AGENT`, `MODEL_REASON`
 - `TAVILY_API_KEY`
 - `DATABASE_URL`: a managed Postgres, or the SQLite path above for a throwaway demo
 - `CORS_ORIGINS`: the frontend URL; defaults to `*`
 
-**On Nebius Serverless Endpoints:**
-1. Push the image to a registry the endpoint can pull from.
-2. Create an endpoint from that image with container port 8000.
-3. Add the variables above as environment or secrets.
-
-Check the exact steps against the current Nebius docs.
+**Live deployment:** the API runs on Render from [`render.yaml`](render.yaml) (Dashboard → New → Blueprint; it asks for `LLM_API_KEY`, `TAVILY_API_KEY` and `DATABASE_URL`). The frontend is on Vercel.
 
 **Frontend (Vercel).** Import the repo, set the root directory to `frontend`, and set `NEXT_PUBLIC_API_URL` to the backend's public URL.
 

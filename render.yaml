@@ -10,9 +10,9 @@ services:
     envVars:
       - key: DATABASE_URL   # any Postgres URL, e.g. Neon free tier (Render allows one free DB per account)
         sync: false
-      - key: NEBIUS_BASE_URL
+      - key: LLM_BASE_URL
         value: https://integrate.api.nvidia.com/v1
-      - key: NEBIUS_API_KEY
+      - key: LLM_API_KEY
         sync: false
       - key: TAVILY_API_KEY
         sync: false

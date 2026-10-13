@@ -13,14 +13,14 @@ from app import env
 from app.models import LlmCall, engine, init_db
 
 # USD per 1M tokens (input, output).
-# ponytail: zeros until filled from the Token Factory pricing page; cost panel shows 0 till then.
+# NVIDIA API Catalog free tier: $0. Fill in if you move to a priced endpoint.
 PRICES = {t: (Decimal(0), Decimal(0)) for t in ("vision", "fast", "agent", "reason")}
 
 
 @cache
 def _client() -> OpenAI:
     # max_retries: SDK backs off on 429/5xx; free tiers return 503 "ResourceExhausted" when busy.
-    return OpenAI(base_url=env("NEBIUS_BASE_URL"), api_key=env("NEBIUS_API_KEY"), max_retries=5)
+    return OpenAI(base_url=env("LLM_BASE_URL"), api_key=env("LLM_API_KEY"), max_retries=5)
 
 
 def _model(tier: str) -> str:

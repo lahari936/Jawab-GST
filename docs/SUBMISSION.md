@@ -47,10 +47,9 @@ Fill the `[brackets]` from `docs/RESULTS.md` after running `scripts/measure.py`.
 - Multilingual output.
 - DRC-03 helper.
 
-**Built with:** nemotron, nvidia, nebius, tavily, python, fastapi, pydantic, pandas, postgresql, next.js, typescript, tailwind, shadcn-ui, vercel, render
+**Built with:** nemotron, nvidia-api-catalog, tavily, python, fastapi, pydantic, pandas, postgresql, next.js, typescript, tailwind, shadcn-ui, vercel, render
 
-> Nebius: development used the NVIDIA API Catalog because Token Factory needed billing. Be explicit about this in the
-> submission, or switch `.env` to Token Factory (only the env changes) and update the README sections before submitting.
+> Inference runs on the NVIDIA API Catalog (free tier). Say so plainly in the submission.
 
 ## Video script (about 3 minutes)
 
