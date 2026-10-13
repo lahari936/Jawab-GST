@@ -1,10 +1,10 @@
-import os
 from functools import cache
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from tavily import TavilyClient
 
+from app import env
 from app.models import Source, engine, init_db
 
 GST_DOMAINS = ["cbic-gst.gov.in", "gst.gov.in", "indiacode.nic.in"]
@@ -12,7 +12,7 @@ GST_DOMAINS = ["cbic-gst.gov.in", "gst.gov.in", "indiacode.nic.in"]
 
 @cache
 def _tv() -> TavilyClient:
-    return TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
+    return TavilyClient(api_key=env("TAVILY_API_KEY"))
 
 
 def search_official(query: str, domains: list[str] = GST_DOMAINS) -> list[dict]:

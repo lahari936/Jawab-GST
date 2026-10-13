@@ -1,7 +1,6 @@
 """The only module that calls the LLM API."""
 import base64
 import json
-import os
 import re
 from decimal import Decimal
 from functools import cache
@@ -10,6 +9,7 @@ from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
+from app import env
 from app.models import LlmCall, engine, init_db
 
 # USD per 1M tokens (input, output).
@@ -20,11 +20,11 @@ PRICES = {t: (Decimal(0), Decimal(0)) for t in ("vision", "fast", "agent", "reas
 @cache
 def _client() -> OpenAI:
     # max_retries: SDK backs off on 429/5xx; free tiers return 503 "ResourceExhausted" when busy.
-    return OpenAI(base_url=os.environ["NEBIUS_BASE_URL"], api_key=os.environ["NEBIUS_API_KEY"], max_retries=5)
+    return OpenAI(base_url=env("NEBIUS_BASE_URL"), api_key=env("NEBIUS_API_KEY"), max_retries=5)
 
 
 def _model(tier: str) -> str:
-    return os.environ[f"MODEL_{tier.upper()}"]
+    return env(f"MODEL_{tier.upper()}")
 
 
 def _text(msg) -> str:

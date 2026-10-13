@@ -44,6 +44,8 @@ def _step(fn, *args):
         return _view(fn(*args))
     except (KeyError, ValueError) as e:
         raise HTTPException(400, str(e))
+    except RuntimeError as e:  # missing server setting, or model output still invalid after retry
+        raise HTTPException(502, str(e))
 
 
 @app.get("/cases")
