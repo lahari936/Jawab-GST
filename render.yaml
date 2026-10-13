@@ -8,8 +8,8 @@ services:
     dockerContext: .
     healthCheckPath: /health
     envVars:
-      - key: DATABASE_URL
-        fromDatabase: {name: jawab-db, property: connectionString}
+      - key: DATABASE_URL   # any Postgres URL, e.g. Neon free tier (Render allows one free DB per account)
+        sync: false
       - key: NEBIUS_BASE_URL
         value: https://integrate.api.nvidia.com/v1
       - key: NEBIUS_API_KEY
@@ -27,8 +27,3 @@ services:
       - key: CORS_ORIGINS
         value: https://frontend-woad-gamma-hzt3uxjv46.vercel.app,http://localhost:3000
 
-databases:
-  - name: jawab-db
-    plan: free   # Render free Postgres expires after 30 days; fine for the hackathon
-    databaseName: jawab
-    user: jawab
