@@ -5,7 +5,7 @@ from functools import cache
 from typing import Literal
 
 from pydantic import BaseModel
-from sqlalchemy import DateTime, Integer, Numeric, String, create_engine, func
+from sqlalchemy import DateTime, Integer, Numeric, String, Text, create_engine, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # ---------- Pydantic (LLM outputs and domain) ----------
@@ -42,17 +42,6 @@ class Notice(BaseModel):
     grounds: list[Ground]
 
 
-class GroundResult(BaseModel):
-    ground_no: int
-    our_amount: TaxAmount
-    difference: TaxAmount
-    status: Literal["explained", "partly_explained", "payable", "needs_ca"]
-    explanation_facts: list[str]   # confirmed by the user
-    source_ids: list[int]
-    payable: TaxAmount | None
-    interest: Decimal | None
-
-
 # ---------- SQLAlchemy ----------
 
 engine = create_engine(os.environ.get("DATABASE_URL", "sqlite:///jawab.db"))
@@ -71,6 +60,27 @@ class LlmCall(Base):
     input_tokens: Mapped[int] = mapped_column(Integer)
     output_tokens: Mapped[int] = mapped_column(Integer)
     cost: Mapped[Decimal] = mapped_column(Numeric(12, 6))
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class Source(Base):
+    """A Tavily result. Drafts may cite only rows from this table, as [S<id>]."""
+    __tablename__ = "sources"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[str] = mapped_column(String, index=True)
+    ground_no: Mapped[int] = mapped_column(Integer)
+    query: Mapped[str] = mapped_column(String)
+    title: Mapped[str] = mapped_column(String)
+    url: Mapped[str] = mapped_column(String)
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class Case(Base):
+    """Whole case state (app.pipeline.case.CaseState) as JSON; small enough per case to not need columns."""
+    __tablename__ = "cases"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    data: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 

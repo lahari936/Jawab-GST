@@ -7,12 +7,18 @@ from pydantic import BaseModel
 from app.models import HEADS, Ground, TaxAmount
 
 
+class Evidence(BaseModel):
+    text: str                      # document-level fact from the returns, no amounts
+    amount: TaxAmount
+
+
 class ReconResult(BaseModel):
     ground_no: int
     our_amount: TaxAmount          # discrepancy recomputed from the returns
     difference: TaxAmount          # officer_amount - our_amount
     fy_net: TaxAmount              # discrepancy netted over the FY (timing differences cancel out)
     periods: list[dict]            # per-month discrepancy for the FY, for the UI and the explain step
+    evidence: list[Evidence]       # later-period documents that offset this period
 
 
 def fy_of(period: str) -> str:
@@ -35,8 +41,20 @@ def discrepancy(category: str, r1, b3, b2) -> pd.DataFrame:
     return a.sub(b, fill_value=Decimal(0)).sort_index()
 
 
-def _amt(row) -> TaxAmount:
-    return TaxAmount(**{h: Decimal(str(row[h])) for h in HEADS})
+def _amt(row, sign: int = 1) -> TaxAmount:
+    return TaxAmount(**{h: sign * Decimal(str(row[h])) for h in HEADS})
+
+
+def _evidence(g: Ground, r1, b2) -> list[Evidence]:
+    fy = fy_of(g.tax_period)
+    later = lambda df: df[(df.period > g.tax_period) & (df.period.map(fy_of) == fy)]
+    if g.category == "output_tax_r1_vs_3b":
+        return [Evidence(text=f"Credit note {r.doc_no} dated {r.doc_date} reported in GSTR-1 for {r.period}",
+                         amount=_amt(r._asdict(), -1))  # stored negative by load_gstr1
+                for r in later(r1[r1.doc_type == "CRN"]).itertuples()]
+    return [Evidence(text=f"Invoice {r.invoice_no} dated {r.invoice_date} from supplier {r.supplier_gstin} "
+                          f"appears in GSTR-2B for {r.period} (supplier filed late)", amount=_amt(r._asdict()))
+            for r in later(b2[b2.invoice_date.str.startswith(g.tax_period)]).itertuples()]
 
 
 def reconcile_ground(g: Ground, r1, b3, b2) -> ReconResult | None:
@@ -54,4 +72,16 @@ def reconcile_ground(g: Ground, r1, b3, b2) -> ReconResult | None:
     return ReconResult(
         ground_no=g.ground_no, our_amount=ours, difference=g.officer_amount - ours, fy_net=fy_net,
         periods=[{"period": p, **_amt(r).model_dump()} for p, r in d.iterrows()],
+        evidence=[] if is_fy else _evidence(g, r1, b2),
     )
+
+
+def assess(r: ReconResult) -> tuple[str, TaxAmount | None]:
+    """Status and payable tax. Payable = what stays unexplained after the FY nets out, capped at our figure."""
+    pos = lambda a, h: max(getattr(a, h), Decimal(0))
+    payable = TaxAmount(**{h: min(pos(r.fy_net, h), pos(r.our_amount, h)) for h in HEADS})
+    if payable == TaxAmount():
+        return "explained", None
+    if payable == TaxAmount(**{h: pos(r.our_amount, h) for h in HEADS}):
+        return "payable", payable
+    return "partly_explained", payable
